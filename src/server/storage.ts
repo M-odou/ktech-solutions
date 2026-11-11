@@ -2,15 +2,32 @@ import 'server-only';
 import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { del, get, put } from '@vercel/blob';
 import { env } from '@/server/env';
 
 /**
- * Stockage de fichiers sur disque.
+ * Stockage des fichiers.
  * - `media/`   : fichiers publics (images de réalisations), servis par /media/…
  * - `private/` : documents joints aux demandes, téléchargeables uniquement par l'administration.
- * Pour un hébergement sans disque persistant, remplacer ces fonctions par un stockage objet (S3, R2…).
+ *
+ * Deux supports, choisis automatiquement :
+ * - avec BLOB_READ_WRITE_TOKEN (Vercel) : Vercel Blob, en accès privé ; les fichiers ne sont lus
+ *   que par le serveur (routes /media et /admin/fichiers), jamais exposés par une URL Blob directe ;
+ * - sinon : disque local, dans STORAGE_DIR.
  */
 const ROOT = path.resolve(env.STORAGE_DIR);
+const useBlob = Boolean(env.BLOB_READ_WRITE_TOKEN);
+
+/** Nom du fichier dans Vercel Blob : `media/…` ou `private/…`, sans remontée de dossier. */
+function blobPath(bucket: Bucket, relative: string) {
+  const clean = path.posix.normalize(relative).replace(/^\/+/, '');
+  if (clean.startsWith('..') || clean.includes('/../') || clean === '.') throw new Error('Chemin de fichier invalide');
+  return `${bucket}/${clean}`;
+}
+
+async function blobWrite(bucket: Bucket, relative: string, data: Buffer | string, contentType: string) {
+  await put(blobPath(bucket, relative), data, { access: 'private', contentType, addRandomSuffix: false, allowOverwrite: true });
+}
 export type Bucket = 'media' | 'private';
 
 const IMAGE_TYPES: Record<string, string> = {
@@ -55,6 +72,10 @@ export async function saveFile(bucket: Bucket, folder: string, file: File, kind:
   if (!ext) throw new Error(`Type de fichier non accepté : ${file.name}`);
   if (file.size > max) throw new Error(`Fichier trop volumineux : ${file.name}`);
   const relative = path.posix.join(folder, `${randomUUID()}${ext}`);
+  if (useBlob) {
+    await blobWrite(bucket, relative, Buffer.from(await file.arrayBuffer()), file.type);
+    return relative;
+  }
   const full = resolveSafe(bucket, relative);
   await mkdir(path.dirname(full), { recursive: true });
   await writeFile(full, Buffer.from(await file.arrayBuffer()));
@@ -62,17 +83,30 @@ export async function saveFile(bucket: Bucket, folder: string, file: File, kind:
 }
 
 export async function writeRaw(bucket: Bucket, relative: string, data: string | Buffer) {
+  if (useBlob) {
+    await blobWrite(bucket, relative, data, contentTypeFor(relative));
+    return relative;
+  }
   const full = resolveSafe(bucket, relative);
   await mkdir(path.dirname(full), { recursive: true });
   await writeFile(full, data);
   return relative;
 }
 
-export async function readStored(bucket: Bucket, relative: string) {
+export async function readStored(bucket: Bucket, relative: string): Promise<Buffer> {
+  if (useBlob) {
+    const result = await get(blobPath(bucket, relative), { access: 'private' });
+    if (!result || result.statusCode !== 200) throw new Error('Fichier introuvable');
+    return Buffer.from(await new Response(result.stream).arrayBuffer());
+  }
   return readFile(resolveSafe(bucket, relative));
 }
 
 export async function deleteStored(bucket: Bucket, relative: string) {
+  if (useBlob) {
+    await del(blobPath(bucket, relative));
+    return;
+  }
   await rm(resolveSafe(bucket, relative), { force: true });
 }
 

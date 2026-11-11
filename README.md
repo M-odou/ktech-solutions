@@ -82,9 +82,20 @@ L'application a besoin d'un serveur Node (≥ 20.9) :
 2. `npm ci && npm run db:migrate && npm run build && npm start`.
 3. Conserver le dossier `storage/` (base SQLite + fichiers) sur un disque persistant et le sauvegarder.
 
-Hébergements adaptés : VPS, Railway, Render (avec disque), o2switch (Node.js). Pour un hébergement sans disque
-(Vercel…), utiliser Turso (`DATABASE_URL=libsql://…` + `DATABASE_AUTH_TOKEN`) et remplacer `server/storage.ts`
-par un stockage objet (S3, Cloudflare R2).
+Hébergements avec disque : VPS, Railway, Render, o2switch (Node.js).
+
+### Sur Vercel (sans disque)
+
+La base est sur **Turso** et les fichiers dans **Vercel Blob** (accès privé, lus uniquement par le serveur).
+Le code bascule automatiquement sur Blob quand `BLOB_READ_WRITE_TOKEN` est défini.
+
+1. Turso : créer une base, récupérer son URL (`libsql://…`) et un jeton.
+2. Vercel → Storage : créer un store **Blob** et le relier au projet (ajoute `BLOB_READ_WRITE_TOKEN`).
+3. Vercel → Settings → Environment Variables : `DATABASE_URL`, `DATABASE_AUTH_TOKEN`, `SESSION_SECRET`,
+   `NEXT_PUBLIC_SITE_URL`.
+4. En local, créer `.env.cloud.local` avec `DATABASE_URL`, `DATABASE_AUTH_TOKEN` et `BLOB_READ_WRITE_TOKEN`, puis
+   `npm run cloud:push` : migrations + copie de la base locale et des fichiers vers le cloud.
+5. Relancer le déploiement sur Vercel.
 
 ## Charte
 
