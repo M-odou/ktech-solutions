@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" width="1600" height="1000">
+<defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#219B53"/><stop offset=".5" stop-color="#2A837E"/><stop offset="1" stop-color="#2F69A1"/></linearGradient></defs>
+<rect width="1600" height="1000" fill="#0F1A24"/><g transform="translate(250 150)"><rect width="1100" height="700" rx="18" fill="#F2F5F7"/>
+<rect width="1100" height="54" rx="18" fill="#E6EBEF"/><rect y="36" width="1100" height="18" fill="#E6EBEF"/>
+<circle cx="34" cy="27" r="8" fill="#C9D2D9"/><circle cx="60" cy="27" r="8" fill="#C9D2D9"/><circle cx="86" cy="27" r="8" fill="#C9D2D9"/>
+<g transform="translate(0 54)"><rect x="40" y="40" width="360" height="34" rx="8" fill="#1F3346"/><rect x="40" y="96" width="220" height="22" rx="6" fill="#219B53"/>
+<rect x="40" y="160" width="300" height="200" rx="14" fill="#fff"/><rect x="370" y="160" width="300" height="200" rx="14" fill="#fff"/><rect x="700" y="160" width="300" height="200" rx="14" fill="#fff"/>
+<text x="70" y="240" font-family="Poppins, Arial" font-size="56" font-weight="600" fill="#1F3346">128</text><text x="70" y="290" font-family="Poppins, Arial" font-size="22" fill="#5B6773">Livraisons</text>
+<text x="400" y="240" font-family="Poppins, Arial" font-size="56" font-weight="600" fill="#219B53">94 %</text><text x="400" y="290" font-family="Poppins, Arial" font-size="22" fill="#5B6773">À l’heure</text>
+<path d="M730 320 L790 280 L850 300 L910 230 L970 210" fill="none" stroke="#2F69A1" stroke-width="8" stroke-linecap="round"/>
+<rect x="40" y="390" width="960" height="260" rx="14" fill="#fff"/>
+<rect x="70" y="425" width="420" height="18" rx="6" fill="#DDE3E8"/><rect x="760" y="420" width="150" height="28" rx="14" fill="#6FD39B"/><rect x="70" y="481" width="420" height="18" rx="6" fill="#DDE3E8"/><rect x="760" y="476" width="110" height="28" rx="14" fill="#8DB8E8"/><rect x="70" y="537" width="420" height="18" rx="6" fill="#DDE3E8"/><rect x="760" y="532" width="170" height="28" rx="14" fill="#6FD39B"/><rect x="70" y="593" width="420" height="18" rx="6" fill="#DDE3E8"/><rect x="760" y="588" width="90" height="28" rx="14" fill="#F2C27B"/></g></g></svg>

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { STATIC_SITE } from '@/server/mode';
 
 /** Variables d'environnement serveur, validées au démarrage. */
 const schema = z.object({
@@ -17,12 +18,13 @@ const schema = z.object({
 
 export const env = schema.parse(process.env);
 
-if (process.env.NODE_ENV === 'production' && env.SESSION_SECRET.startsWith('dev-only')) {
+if (process.env.NODE_ENV === 'production' && !STATIC_SITE && env.SESSION_SECRET.startsWith('dev-only')) {
   throw new Error('SESSION_SECRET doit être défini en production (openssl rand -base64 32).');
 }
 
-// Sur Vercel, le disque est éphémère : la base doit être en ligne (Turso) et les fichiers dans Vercel Blob.
-if (process.env.VERCEL) {
+// Sur Vercel avec base de données, le disque est éphémère : base sur Turso et fichiers dans Vercel Blob.
+// Sans DATABASE_URL, le site tourne en mode vitrine (voir server/mode.ts).
+if (process.env.VERCEL && !STATIC_SITE) {
   if (env.DATABASE_URL.startsWith('file:')) {
     throw new Error('Sur Vercel, DATABASE_URL doit pointer vers Turso (libsql://…), avec DATABASE_AUTH_TOKEN.');
   }

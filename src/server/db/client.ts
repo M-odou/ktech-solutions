@@ -10,9 +10,22 @@ import * as schema from './schema';
  */
 const globalForDb = globalThis as unknown as { libsql?: ReturnType<typeof createClient> };
 
-const client =
-  globalForDb.libsql ?? createClient({ url: env.DATABASE_URL, authToken: env.DATABASE_AUTH_TOKEN || undefined });
-if (process.env.NODE_ENV !== 'production') globalForDb.libsql = client;
+function createDb() {
+  const client =
+    globalForDb.libsql ?? createClient({ url: env.DATABASE_URL, authToken: env.DATABASE_AUTH_TOKEN || undefined });
+  if (process.env.NODE_ENV !== 'production') globalForDb.libsql = client;
+  return drizzle(client, { schema });
+}
 
-export const db = drizzle(client, { schema });
+type Db = ReturnType<typeof createDb>;
+let instance: Db | undefined;
+
+/** Connexion ouverte au premier usage : importer ce module ne touche pas à la base (utile au build). */
+export const db = new Proxy({} as Db, {
+  get(_target, prop) {
+    instance ??= createDb();
+    const value = Reflect.get(instance, prop, instance);
+    return typeof value === 'function' ? value.bind(instance) : value;
+  },
+});
 export { schema };

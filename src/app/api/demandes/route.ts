@@ -1,7 +1,8 @@
 import { revalidatePath } from 'next/cache';
 import { NextResponse, type NextRequest } from 'next/server';
 import { messageSchema, quoteSchema, toFieldErrors, trainingSchema } from '@/features/requests/schema';
-import { getServices } from '@/server/queries/content';
+import { STATIC_SITE } from '@/server/mode';
+import { getServices, getSettings } from '@/server/queries/content';
 import { addRequestFile, createRequest } from '@/server/queries/requests';
 import { LIMITS, saveFile } from '@/server/storage';
 
@@ -10,6 +11,15 @@ import { LIMITS, saveFile } from '@/server/storage';
  * Route Handler plutôt que Server Action : accepte des pièces jointes jusqu'à 5 × 10 Mo.
  */
 export async function POST(req: NextRequest) {
+  // Mode vitrine : aucune base pour enregistrer la demande, on oriente vers WhatsApp ou le téléphone.
+  if (STATIC_SITE) {
+    const { company } = await getSettings();
+    return NextResponse.json(
+      { error: `L’envoi en ligne n’est pas encore disponible. Contactez-nous sur WhatsApp ou au ${company.phone}, nous vous répondons rapidement.` },
+      { status: 503 },
+    );
+  }
+
   let form: FormData;
   try {
     form = await req.formData();

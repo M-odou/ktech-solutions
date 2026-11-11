@@ -1,0 +1,3 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" width="1600" height="1000">
+<defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#219B53"/><stop offset=".5" stop-color="#2A837E"/><stop offset="1" stop-color="#2F69A1"/></linearGradient></defs>
+<rect width="1600" height="1000" fill="#0F1A24"/><circle cx="800" cy="500" r="220" fill="none" stroke="url(#g)" stroke-width="56"/><text x="800" y="560" text-anchor="middle" font-family="Poppins, Arial" font-size="180" font-weight="600" fill="#fff">K</text></svg>

@@ -84,7 +84,16 @@ L'application a besoin d'un serveur Node (≥ 20.9) :
 
 Hébergements avec disque : VPS, Railway, Render, o2switch (Node.js).
 
-### Sur Vercel (sans disque)
+### Sur Vercel en mode vitrine (sans base de données)
+
+Sans `DATABASE_URL` sur Vercel, le site public est servi depuis un instantané du contenu :
+`src/content/snapshot.json` et les images de `public/media/`. Le back-office et l'envoi des formulaires sont
+désactivés en ligne (les visiteurs sont orientés vers WhatsApp et le téléphone). Aucune variable n'est requise.
+
+Pour mettre à jour le site : modifier le contenu dans le back-office **local**, puis
+`npm run snapshot`, et pousser sur GitHub (Vercel redéploie).
+
+### Sur Vercel avec base de données (Turso + Blob)
 
 La base est sur **Turso** et les fichiers dans **Vercel Blob** (accès privé, lus uniquement par le serveur).
 Le code bascule automatiquement sur Blob quand `BLOB_READ_WRITE_TOKEN` est défini.
