@@ -17,7 +17,7 @@ export type Settings = {
   };
   home: {
     heroTitle: string; heroHighlight: string; heroIntro: string;
-    founderName: string; founderRole: string; marquee: string[];
+    foundersLabel: string; founders: string[]; marquee: string[];
     orbitTitle: string; orbitSubtitle: string;
     methodTitle: string; methodLead: string; steps: Pair[];
     projectsTitle: string;
@@ -70,8 +70,8 @@ export const SECTIONS: Record<SectionKey, SectionDef> = {
       { key: 'heroTitle', label: 'Titre du hero (1re ligne)', type: 'text' },
       { key: 'heroHighlight', label: 'Titre du hero (2e ligne, en dégradé)', type: 'text' },
       { key: 'heroIntro', label: 'Texte d’accroche', type: 'textarea' },
-      { key: 'founderName', label: 'Nom du fondateur', type: 'text' },
-      { key: 'founderRole', label: 'Fonction du fondateur', type: 'text' },
+      { key: 'foundersLabel', label: 'Titre des co-fondateurs', type: 'text' },
+      { key: 'founders', label: 'Co-fondateurs', type: 'lines', help: 'Un nom par ligne.' },
       { key: 'marquee', label: 'Bandeau défilant', type: 'lines', help: LINES_HELP },
       { key: 'orbitTitle', label: 'Titre de la galerie', type: 'text' },
       { key: 'orbitSubtitle', label: 'Sous-titre de la galerie', type: 'text' },
@@ -176,8 +176,8 @@ export const DEFAULT_SETTINGS: Settings = {
     heroTitle: 'Former les talents,',
     heroHighlight: 'concevoir les solutions.',
     heroIntro: 'Formation, solutions digitales et créativité, réunies dans une seule équipe.',
-    founderName: 'Samba Bery Kane',
-    founderRole: 'Co-fondateur, KTech Solutions',
+    foundersLabel: 'Co-fondateurs',
+    founders: ['Samba Bery Kane', 'Moussa Tamba', 'Cheikh Saliou Talla', 'Modou Gningue Gueye'],
     marquee: ['Marketing digital', 'UI/UX Design', 'Sites web', 'Applications mobiles', 'Identité visuelle', 'Impression numérique', 'Événementiel', 'Coaching'],
     orbitTitle: 'Des idées qui prennent forme',
     orbitSubtitle: 'Sites · Applications · Identités · Formations · Événements',

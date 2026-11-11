@@ -1,44 +1,37 @@
 import Link from 'next/link';
 import { Icon } from '@/components/ui/Icon';
 import { CTA } from '@/config/site';
-import { HeroField } from '@/features/home/HeroField';
+import { HeroMark } from '@/features/home/HeroMark';
 import { ProjectRows } from '@/features/home/ProjectRows';
 import { OrbitGallery, ScrollMarquee } from '@/features/home/ScrollEffects';
 import { ServicesScroller } from '@/features/home/ServicesScroller';
 import { mediaUrl, whatsappUrl } from '@/lib/format';
 import { getFaqs, getProjects, getServices, getSettings } from '@/server/queries/content';
 
+/** Initiales : premier et dernier mot du nom (« Samba Bery Kane » → « SK »). */
+function initialsOf(name: string): string {
+  const w = name.split(' ').filter(Boolean);
+  return w.length > 1 ? w[0][0] + w[w.length - 1][0] : (w[0]?.[0] ?? '');
+}
+
 export default async function HomePage() {
   const [{ company, home }, services, projects, faqs] = await Promise.all([getSettings(), getServices(), getProjects(), getFaqs()]);
   const featured = projects.filter((p) => p.featured).slice(0, 3);
   const orbitImages = projects.flatMap((p) => p.images.slice(0, 2)).slice(0, 8).map((i) => mediaUrl(i.path));
-  const firstName = home.founderName.split(' ')[0];
-  const waCall = whatsappUrl(company.whatsapp, `Bonjour ${firstName}, je souhaite échanger sur un projet.`);
-  const initials = home.founderName.split(' ').filter(Boolean).map((w) => w[0]).filter((_, i, a) => i === 0 || i === a.length - 1).join('');
+  const waCall = whatsappUrl(company.whatsapp, 'Bonjour KTech Solutions, je souhaite échanger sur un projet.');
 
   return (
     <>
       <section className="hero" aria-labelledby="hero-title">
-        <HeroField />
         <div className="hero-glow" aria-hidden="true" />
         <div className="container hero-inner">
-          <div className="hero-aside">
-            <p>
-              {company.tagline}. {home.heroIntro}
-            </p>
-            {waCall && (
-              <a className="btn btn-ghost btn-sm" href={waCall} target="_blank" rel="noopener noreferrer">
-                <Icon name="whatsapp" /> Échanger sur WhatsApp
-                <span className="sr-only"> (nouvel onglet)</span>
-              </a>
-            )}
-          </div>
-          <div className="hero-main">
+          <div className="hero-copy">
             <h1 className="display" id="hero-title">
               {home.heroTitle}
               <br />
               <span className="grad-text">{home.heroHighlight}</span>
             </h1>
+            <p className="lead">{home.heroIntro}</p>
             <div className="btns">
               <Link className="btn" href={CTA.href}>
                 {CTA.primary} <Icon name="arrow" />
@@ -47,18 +40,30 @@ export default async function HomePage() {
                 Découvrir nos services
               </Link>
             </div>
-          </div>
-          {home.founderName && (
-            <div className="founder">
-              <span className="founder-avatar" aria-hidden="true">
-                {initials}
-              </span>
-              <span>
-                <b>{home.founderName}</b>
-                <small>{home.founderRole}</small>
-              </span>
+            <div className="hero-foot">
+              {home.founders.length > 0 && (
+                <div className="founders">
+                  <ul className="founders-avatars" aria-label={home.foundersLabel}>
+                    {home.founders.map((name) => (
+                      <li key={name} className="founder-avatar" tabIndex={0} data-name={name} aria-label={name}>
+                        <span aria-hidden="true">{initialsOf(name)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <b>{home.foundersLabel}</b>
+                </div>
+              )}
+              {waCall && (
+                <a className="hero-wa" href={waCall} target="_blank" rel="noopener noreferrer">
+                  <Icon name="whatsapp" /> Échanger sur WhatsApp
+                  <span className="sr-only"> (nouvel onglet)</span>
+                </a>
+              )}
             </div>
-          )}
+          </div>
+          <div className="hero-visual">
+            <HeroMark />
+          </div>
         </div>
       </section>
 

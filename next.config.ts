@@ -8,6 +8,8 @@ const nextConfig: NextConfig = {
   trailingSlash: true,
   poweredByHeader: false,
   reactStrictMode: true,
+  // Masque le badge « N » de Next.js affiché en bas à gauche pendant le développement.
+  devIndicators: false,
   images: { unoptimized: true },
   // Ancre la racine du projet (un package-lock.json traîne dans le dossier utilisateur).
   turbopack: { root: process.cwd() },
