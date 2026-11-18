@@ -15,4 +15,4 @@ export const NAV = [
 /** Un seul appel principal, partout le même. */
 export const CTA = { primary: 'Demander un devis', href: '/devis/', whatsapp: 'Écrire sur WhatsApp' } as const;
 
-export const SERVICE_ICONS = ['formation', 'dev', 'design', 'print', 'event', 'layers', 'target', 'compass', 'rocket', 'chat'] as const;
+export const SERVICE_ICONS = ['formation', 'dev', 'design', 'print', 'event', 'layers', 'target', 'compass', 'rocket', 'chat', 'megaphone'] as const;

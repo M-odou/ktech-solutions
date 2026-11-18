@@ -195,8 +195,8 @@ export const DEFAULT_SETTINGS: Settings = {
     ctaText: 'Décrivez votre besoin en quelques minutes : nous revenons vers vous rapidement avec une proposition.',
   },
   services: {
-    title: 'Cinq expertises pour réussir votre transformation numérique.',
-    lead: 'Formation, développement, design, impression et événementiel : choisissez un pôle ou combinez-les. Chaque prestation est adaptée à votre contexte.',
+    title: 'Faites votre marché parmi nos six expertises.',
+    lead: 'Formation, développement, design, impression, événementiel et marketing digital : entrez dans les rayons, remplissez votre chariot, puis passez à la caisse pour recevoir un devis gratuit.',
   },
   projects: {
     title: 'Des projets concrets, des résultats visibles.',

@@ -95,6 +95,23 @@ export const SERVICES: ServiceSeed[] = [
     ],
     steps: ['Cadrage de l’événement', 'Plan de communication', 'Production des supports', 'Couverture et bilan'],
   },
+  {
+    slug: 'marketing', icon: 'megaphone', title: 'Marketing digital et réseaux sociaux', shortTitle: 'Marketing digital',
+    summary: 'Faites-vous connaître et trouvez de nouveaux clients grâce aux réseaux sociaux, à la publicité en ligne et à des contenus qui donnent envie.',
+    tags: ['Réseaux sociaux', 'Publicité en ligne', 'Création de contenus', 'Stratégie digitale'],
+    needs: [
+      'Vos pages existent mais publient peu et n’attirent pas de clients.',
+      'Vous voulez lancer un produit ou une offre et toucher le bon public.',
+      'Vous manquez de temps pour gérer vos réseaux et mesurer vos résultats.',
+    ],
+    offers: ['Stratégie digitale', 'Gestion des réseaux sociaux', 'Publicité Facebook, Instagram et TikTok', 'Création de contenus (visuels et vidéos)', 'Référencement Google et Google Maps', 'Suivi et rapports de performance'],
+    benefits: [
+      { title: 'Plus de visibilité', text: 'Une présence régulière là où sont vos clients.' },
+      { title: 'Des clients qualifiés', text: 'Des campagnes ciblées sur votre zone et votre public.' },
+      { title: 'Des résultats mesurés', text: 'Un rapport clair chaque mois pour savoir ce qui marche.' },
+    ],
+    steps: ['Audit de votre présence', 'Stratégie et calendrier', 'Création et diffusion', 'Mesure et ajustements'],
+  },
 ];
 
 export const PROJECT_CATEGORIES = [

@@ -5,7 +5,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { ChoiceCard, ChoiceGroup, ChoicePill } from '@/components/ui/Choice';
 import { Field } from '@/components/ui/Field';
 import { Icon, type IconName } from '@/components/ui/Icon';
-import { cartTotal, formatPrice, priceLabel, resolveCart } from '@/content/features';
+import { cartTotal, formatPrice, mainService, priceLabel, resolveCart } from '@/content/features';
 import { formatBytes, whatsappUrl } from '@/lib/format';
 import { cart, useCart } from '../cart/store';
 import { BUDGETS, CONTACT_PREFS, GOALS, quoteSchema, TIMELINES, toFieldErrors, type FieldErrors } from '../requests/schema';
@@ -94,8 +94,13 @@ export function QuoteWizard({
   const summaryRef = useRef<HTMLDivElement>(null);
   const doneRef = useRef<HTMLDivElement>(null);
 
-  const service = services.find((s) => s.slug === data.service);
+  // Le chariot rempli dans les rayons : il remplace le choix du service (étape 1 = passage en caisse).
   const cartLines = resolveCart(useCart());
+  const inCart = cartLines.length > 0;
+  const cartServices = [...new Set(cartLines.map((l) => l.service))];
+  const withCart = (d: Data): Data => (inCart && !d.service ? { ...d, service: mainService(cartLines) ?? 'autre' } : d);
+  const service = services.find((s) => s.slug === withCart(data).service);
+  const stepTitle = (i: number) => (i === 0 && inCart ? 'Votre chariot' : STEPS[i].title);
   const serviceName = (slug: string) => services.find((s) => s.slug === slug)?.shortTitle ?? slug;
   const set = <K extends keyof Data>(key: K, value: Data[K]) => {
     setEdited(true);
@@ -126,7 +131,7 @@ export function QuoteWizard({
   };
 
   const next = () => {
-    const e = validateStep(step, data);
+    const e = validateStep(step, withCart(data));
     if (Object.keys(e).length) {
       setErrors(e);
       requestAnimationFrame(() => summaryRef.current?.focus());
@@ -136,7 +141,7 @@ export function QuoteWizard({
   };
 
   const submit = async () => {
-    const e = validateStep(5, data);
+    const e = validateStep(5, withCart(data));
     if (Object.keys(e).length) {
       setErrors(e);
       requestAnimationFrame(() => summaryRef.current?.focus());
@@ -145,7 +150,7 @@ export function QuoteWizard({
     const form = new FormData();
     form.set('kind', 'devis');
     form.set('website', '');
-    for (const [k, v] of Object.entries(data)) {
+    for (const [k, v] of Object.entries(withCart(data))) {
       if (Array.isArray(v)) v.forEach((x) => form.append(k, x));
       else if (k === 'consent') form.set(k, v ? 'on' : '');
       else form.set(k, String(v));
@@ -260,7 +265,7 @@ export function QuoteWizard({
 
       <div className="wizard-progress">
         <p>
-          Étape {step + 1} sur {STEPS.length} · <b>{STEPS[step].title}</b>
+          Étape {step + 1} sur {STEPS.length} · <b>{stepTitle(step)}</b>
         </p>
         <div className="bar" role="progressbar" aria-label="Avancement de la demande" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}>
           <i style={{ width: `${Math.max(progress, 4)}%` }} />
@@ -270,12 +275,12 @@ export function QuoteWizard({
             <li key={s.title} aria-current={i === step ? 'step' : undefined} className={i < step ? 'done' : undefined}>
               {i < step ? (
                 <button type="button" onClick={() => goTo(i)}>
-                  <span aria-hidden="true">{i + 1}</span> {s.title}
+                  <span aria-hidden="true">{i + 1}</span> {stepTitle(i)}
                   <span className="sr-only"> (terminée, modifier)</span>
                 </button>
               ) : (
                 <span>
-                  <span aria-hidden="true">{i + 1}</span> {s.title}
+                  <span aria-hidden="true">{i + 1}</span> {stepTitle(i)}
                 </span>
               )}
             </li>
@@ -294,8 +299,8 @@ export function QuoteWizard({
       >
         <h2 ref={headingRef} tabIndex={-1} className="wizard-title">
           {[
-            'Quel est votre besoin ?',
-            service ? `Parlez-nous de votre projet — ${service.shortTitle}` : 'Parlez-nous de votre projet',
+            inCart ? 'Bienvenue à la caisse : vérifiez votre chariot' : 'Quel est votre besoin ?',
+            service && cartServices.length <= 1 ? `Parlez-nous de votre projet — ${service.shortTitle}` : 'Parlez-nous de votre projet',
             'Quel cadre pour ce projet ?',
             'Avez-vous des documents à partager ?',
             'Comment vous recontacter ?',
@@ -321,7 +326,43 @@ export function QuoteWizard({
         {/* Champ piège anti-robots, invisible et ignoré des lecteurs d'écran */}
         <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hp" aria-hidden="true" defaultValue="" />
 
-        {step === 0 && (
+        {step === 0 && inCart && (
+          <div className="wizard-fields">
+              <section className="wizard-cart" aria-labelledby="wizard-cart-title">
+                <header>
+                  <h3 id="wizard-cart-title">
+                    <Icon name="cart" /> {cartLines.length} article{cartLines.length > 1 ? 's' : ''} · {cartServices.length} service{cartServices.length > 1 ? 's' : ''}
+                  </h3>
+                  <button type="button" className="link-btn" onClick={cart.open}>
+                    Modifier le chariot
+                  </button>
+                </header>
+                <ul>
+                  {cartLines.map((l) => (
+                    <li key={l.id}>
+                      <span className="wizard-good">
+                        <Icon name={l.icon} />
+                        <span className="muted">{serviceName(l.service)} · </span>
+                        {l.label}
+                      </span>
+                      <span className="muted">{priceLabel(l)}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="wizard-cart-total">
+                  Estimation de départ : <b>{cartTotal(cartLines) ? formatPrice(cartTotal(cartLines)) : 'sur devis'}</b>
+                </p>
+                <p className="hint">
+                  Il vous manque quelque chose ?{' '}
+                  <Link className="text-link" href="/services/">
+                    Retourner dans les rayons
+                  </Link>
+                </p>
+              </section>
+          </div>
+        )}
+
+        {step === 0 && !inCart && (
           <ChoiceGroup legend={<span id="q-service">Choisissez le domaine qui correspond le mieux à votre projet.</span>} error={errors.service} errorId="e-service">
             {services.map((s) => (
               <ChoiceCard
@@ -357,33 +398,7 @@ export function QuoteWizard({
 
         {step === 1 && (
           <div className="wizard-fields">
-            {cartLines.length > 0 && (
-              <section className="wizard-cart" aria-labelledby="wizard-cart-title">
-                <header>
-                  <h3 id="wizard-cart-title">
-                    <Icon name="cart" /> Votre panier ({cartLines.length})
-                  </h3>
-                  <button type="button" className="link-btn" onClick={cart.open}>
-                    Modifier le panier
-                  </button>
-                </header>
-                <ul>
-                  {cartLines.map((l) => (
-                    <li key={l.id}>
-                      <span>
-                        <span className="muted">{serviceName(l.service)} · </span>
-                        {l.label}
-                      </span>
-                      <span className="muted">{priceLabel(l)}</span>
-                    </li>
-                  ))}
-                </ul>
-                <p className="wizard-cart-total">
-                  Estimation de départ : <b>{formatPrice(cartTotal(cartLines))}</b>
-                </p>
-              </section>
-            )}
-            {service && service.offers.length > 0 && (
+            {service && cartServices.length <= 1 && service.offers.length > 0 && (
               <ChoiceGroup legend="Qu’est-ce qui vous intéresse ?" hint="Plusieurs choix possibles (facultatif)." variant="pills">
                 {service.offers.map((o) => (
                   <ChoicePill key={o} type="checkbox" name="projectTypes" value={o} checked={data.projectTypes.includes(o)} onChange={(on) => toggle('projectTypes', o, on)} label={o} />
@@ -462,19 +477,17 @@ export function QuoteWizard({
           <div className="wizard-fields">
             <div className="recap">
               {[
-                { step: 0, title: 'Votre besoin', rows: [['Service', service?.title ?? 'Autre / à définir']] },
-                ...(cartLines.length
-                  ? [
-                      {
-                        step: 1,
-                        title: 'Votre panier',
-                        rows: [
-                          ['Fonctionnalités', cartLines.map((l) => `• ${serviceName(l.service)} — ${l.label}`).join('\n')],
-                          ['Estimation de départ', formatPrice(cartTotal(cartLines))],
-                        ],
-                      },
-                    ]
-                  : []),
+                inCart
+                  ? {
+                      step: 0,
+                      title: 'Votre chariot',
+                      rows: [
+                        ['Services', cartServices.map(serviceName).join(', ')],
+                        ['Articles', cartLines.map((l) => `• ${serviceName(l.service)} — ${l.label}`).join('\n')],
+                        ['Estimation de départ', cartTotal(cartLines) ? formatPrice(cartTotal(cartLines)) : 'Sur devis'],
+                      ],
+                    }
+                  : { step: 0, title: 'Votre besoin', rows: [['Service', service?.title ?? 'Autre / à définir']] },
                 { step: 1, title: 'Votre projet', rows: [['Ce qui vous intéresse', data.projectTypes.join(', ') || '—'], ['Description', data.description], ['Objectifs', data.goals.join(', ') || '—']] },
                 { step: 2, title: 'Budget et délais', rows: [['Budget', data.budget], ['Délai', data.timeline]] },
                 { step: 3, title: 'Documents', rows: [['Fichiers', files.length ? files.map((f) => `${f.name} (${formatBytes(f.size)})`).join(', ') : 'Aucun']] },

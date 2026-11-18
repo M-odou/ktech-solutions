@@ -15,6 +15,7 @@ const RELATED: Record<string, string[]> = {
   design: ['graphique', 'uiux'],
   impression: ['graphique', 'evenementiel'],
   evenementiel: ['evenementiel'],
+  marketing: ['formation', 'graphique'],
 };
 
 export async function generateStaticParams() {
@@ -41,7 +42,7 @@ export default async function ServicePage({ params }: PageProps<'/services/[slug
       <PageHero crumbs={[{ href: '/services/', label: 'Services' }, { label: service.shortTitle }]} eyebrow="Service" title={service.title} lead={service.summary}>
         <div className="btns">
           <Link className="btn" href="#composer">
-            Composer mon panier <Icon name="cart" />
+            Remplir mon chariot <Icon name="cart" />
           </Link>
           <Link className="btn btn-ghost" href={`${CTA.href}?service=${service.slug}`}>
             {CTA.primary}
@@ -89,10 +90,10 @@ export default async function ServicePage({ params }: PageProps<'/services/[slug
                 <Icon name={service.icon as IconName} />
               </span>
               <p className="side-title">Un projet dans ce domaine ?</p>
-              <p className="muted">Ajoutez les fonctionnalités voulues à votre panier, ou décrivez directement votre besoin.</p>
+              <p className="muted">Mettez les livrables voulus dans votre chariot, ou décrivez directement votre besoin.</p>
               <div className="btns">
                 <Link className="btn" href="#composer">
-                  Composer mon panier
+                  Remplir mon chariot
                 </Link>
                 <Link className="btn btn-ghost" href={`${CTA.href}?service=${service.slug}`}>
                   {CTA.primary}

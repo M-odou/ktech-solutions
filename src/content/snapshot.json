@@ -463,6 +463,57 @@
       "published": true,
       "createdAt": "2026-11-08 14:26:29",
       "updatedAt": "2026-11-08 14:26:29"
+    },
+    {
+      "id": 6,
+      "slug": "marketing",
+      "icon": "megaphone",
+      "title": "Marketing digital et réseaux sociaux",
+      "shortTitle": "Marketing digital",
+      "summary": "Faites-vous connaître et trouvez de nouveaux clients grâce aux réseaux sociaux, à la publicité en ligne et à des contenus qui donnent envie.",
+      "tags": [
+        "Réseaux sociaux",
+        "Publicité en ligne",
+        "Création de contenus",
+        "Stratégie digitale"
+      ],
+      "needs": [
+        "Vos pages existent mais publient peu et n’attirent pas de clients.",
+        "Vous voulez lancer un produit ou une offre et toucher le bon public.",
+        "Vous manquez de temps pour gérer vos réseaux et mesurer vos résultats."
+      ],
+      "offers": [
+        "Stratégie digitale",
+        "Gestion des réseaux sociaux",
+        "Publicité Facebook, Instagram et TikTok",
+        "Création de contenus (visuels et vidéos)",
+        "Référencement Google et Google Maps",
+        "Suivi et rapports de performance"
+      ],
+      "benefits": [
+        {
+          "title": "Plus de visibilité",
+          "text": "Une présence régulière là où sont vos clients."
+        },
+        {
+          "title": "Des clients qualifiés",
+          "text": "Des campagnes ciblées sur votre zone et votre public."
+        },
+        {
+          "title": "Des résultats mesurés",
+          "text": "Un rapport clair chaque mois pour savoir ce qui marche."
+        }
+      ],
+      "steps": [
+        "Audit de votre présence",
+        "Stratégie et calendrier",
+        "Création et diffusion",
+        "Mesure et ajustements"
+      ],
+      "position": 5,
+      "published": true,
+      "createdAt": "2026-11-18 16:49:41",
+      "updatedAt": "2026-11-18 16:49:41"
     }
   ],
   "projects": [

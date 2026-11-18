@@ -1,7 +1,7 @@
 import { revalidatePath } from 'next/cache';
 import { NextResponse, type NextRequest } from 'next/server';
 import { cartTotal, formatPrice, priceLabel, resolveCart } from '@/content/features';
-import { messageSchema, quoteSchema, toFieldErrors, trainingSchema } from '@/features/requests/schema';
+import { checkoutSchema, messageSchema, quoteSchema, toFieldErrors, trainingSchema } from '@/features/requests/schema';
 import { STATIC_SITE } from '@/server/mode';
 import { getServices, getSettings } from '@/server/queries/content';
 import { addRequestFile, createRequest } from '@/server/queries/requests';
@@ -50,17 +50,20 @@ export async function POST(req: NextRequest) {
       const serviceLabel = services.find((s) => s.slug === v.service)?.title ?? 'Autre / à définir';
       // Panier : libellés et prix relus dans le catalogue serveur (jamais ceux envoyés par le navigateur).
       const lines = resolveCart([...new Set(v.features)]);
+      const cartServices = [...new Set(lines.map((l) => l.service))].map((slug) => services.find((s) => s.slug === slug)?.shortTitle ?? slug);
+      const subject = cartServices.length > 1 ? `Chariot : ${cartServices.join(' + ')}` : serviceLabel;
       const cartDetails: Record<string, string> = lines.length
         ? {
             'Panier (fonctionnalités choisies)': lines
               .map((l) => `• ${services.find((s) => s.slug === l.service)?.shortTitle ?? l.service} — ${l.label} (${priceLabel(l)})`)
               .join('\n'),
-            'Estimation du panier': `${formatPrice(cartTotal(lines))} (prix de départ indicatifs)`,
+            'Services du chariot': cartServices.join(', '),
+            'Estimation du panier': cartTotal(lines) ? `${formatPrice(cartTotal(lines))} (prix de départ indicatifs)` : 'Sur devis',
           }
         : {};
       const request = await createRequest({
         kind: 'devis',
-        subject: serviceLabel,
+        subject,
         details: {
           Service: serviceLabel,
           'Types de projet': v.projectTypes,
@@ -77,6 +80,47 @@ export async function POST(req: NextRequest) {
         contactPreference: v.contactPreference,
       });
 
+      const rejected: string[] = [];
+      for (const file of files) {
+        try {
+          const storedPath = await saveFile('private', `requests/${request.reference}`, file, 'document');
+          await addRequestFile(request.id, { originalName: file.name.slice(0, 200), storedPath, mime: file.type, size: file.size });
+        } catch {
+          rejected.push(file.name);
+        }
+      }
+      revalidatePath('/admin', 'layout');
+      return NextResponse.json({ ok: true, reference: request.reference, rejected });
+    }
+
+    if (kind === 'caisse') {
+      const parsed = checkoutSchema.safeParse({ ...raw, features: arr('features') });
+      if (!parsed.success) return NextResponse.json({ errors: toFieldErrors(parsed.error) }, { status: 422 });
+      const files = form.getAll('files').filter((f): f is File => f instanceof File && f.size > 0);
+      if (files.length > LIMITS.requestMaxFiles) {
+        return NextResponse.json({ errors: { files: `${LIMITS.requestMaxFiles} fichiers maximum.` } }, { status: 422 });
+      }
+      const v = parsed.data;
+      const services = await getServices();
+      const short = (slug: string) => services.find((s) => s.slug === slug)?.shortTitle ?? slug;
+      // Libellés et prix relus dans le catalogue serveur (jamais ceux envoyés par le navigateur).
+      const lines = resolveCart([...new Set(v.features)]);
+      const cartServices = [...new Set(lines.map((l) => l.service))].map(short);
+      const request = await createRequest({
+        kind: 'devis',
+        subject: cartServices.length ? `Chariot : ${cartServices.join(' + ')}` : 'Demande sans chariot',
+        details: {
+          'Services du chariot': cartServices.join(', ') || '—',
+          'Panier (fonctionnalités choisies)': lines.map((l) => `• ${short(l.service)} — ${l.label} (${priceLabel(l)})`).join('\n') || '—',
+          'Estimation du panier': lines.length ? (cartTotal(lines) ? `${formatPrice(cartTotal(lines))} (prix de départ indicatifs)` : 'Sur devis') : '—',
+          'Un mot sur le projet': v.message || '—',
+          Délai: v.timeline || 'Non précisé',
+        },
+        name: v.name,
+        phone: v.phone,
+        email: v.email,
+        contactPreference: v.contactPreference,
+      });
       const rejected: string[] = [];
       for (const file of files) {
         try {

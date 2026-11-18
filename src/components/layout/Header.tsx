@@ -6,12 +6,12 @@ import { useEffect, useRef, useState } from 'react';
 import { Icon } from '@/components/ui/Icon';
 import { Logo } from '@/components/ui/Logo';
 import { CTA, NAV } from '@/config/site';
-import { CartButton, type CartService } from '@/features/cart/CartButton';
+import { CartButton } from '@/features/cart/CartButton';
 import { ThemeToggle } from './ThemeToggle';
 
 const isCurrent = (pathname: string, href: string) => (href === '/' ? pathname === '/' : pathname.startsWith(href));
 
-export function Header({ services, whatsapp }: { services: CartService[]; whatsapp: string }) {
+export function Header() {
   const pathname = usePathname() ?? '/';
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -65,7 +65,7 @@ export function Header({ services, whatsapp }: { services: CartService[]; whatsa
 
         <div className="header-actions">
           <ThemeToggle />
-          <CartButton services={services} whatsapp={whatsapp} />
+          <CartButton />
           <Link className="btn btn-sm btn-cta" href={CTA.href}>
             {CTA.primary}
           </Link>

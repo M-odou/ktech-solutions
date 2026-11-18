@@ -64,6 +64,7 @@ export const cart = {
   remove: (id: string) => write(read().filter((x) => x !== id)),
   toggle: (id: string) => (read().includes(id) ? cart.remove(id) : cart.add(id)),
   clear: () => write([]),
+  removeMany: (ids: readonly string[]) => write(read().filter((x) => !ids.includes(x))),
   /** Ouvre le tiroir du panier (écouté par CartButton dans l'en-tête). */
   open: () => window.dispatchEvent(new Event('ktech:open-cart')),
 };

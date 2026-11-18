@@ -51,6 +51,27 @@ export const quoteSchema = z
     message: 'Indiquez votre e-mail pour être contacté par e-mail.',
   });
 
+/** Caisse express : le chariot + trois informations pour vous recontacter. */
+export const checkoutSchema = z
+  .object({
+    features: z.array(z.string().max(80)).max(60).default([]),
+    message: z.string().trim().max(2000).default(''),
+    timeline: z.union([z.literal(''), z.enum(TIMELINES)]).default(''),
+    name,
+    phone,
+    email,
+    contactPreference: z.enum(CONTACT_PREFS, { message: 'Choisissez comment vous préférez être contacté.' }),
+    consent: z.literal('on', { message: 'Cochez la case pour que nous puissions vous répondre.' }),
+  })
+  .refine((v) => v.features.length > 0 || v.message.length >= 10, {
+    path: ['message'],
+    message: 'Votre chariot est vide : dites-nous en quelques mots ce dont vous avez besoin.',
+  })
+  .refine((v) => v.contactPreference !== 'E-mail' || v.email !== '', {
+    path: ['email'],
+    message: 'Indiquez votre e-mail pour être contacté par e-mail.',
+  });
+
 export const trainingSchema = z.object({
   name,
   phone,

@@ -1,31 +1,38 @@
 import type { Metadata } from 'next';
-import { PageHero } from '@/components/sections/Blocks';
-import { QuoteWizard } from '@/features/quote/QuoteWizard';
+import Link from 'next/link';
+import { Checkout } from '@/features/cart/Checkout';
 import { getServices, getSettings } from '@/server/queries/content';
 
 export const metadata: Metadata = {
-  title: 'Demande de devis',
-  description: 'Décrivez votre projet en quelques minutes et recevez une proposition adaptée de KTech Solutions.',
+  title: 'La caisse',
+  description: 'Validez votre chariot en une minute et recevez un devis gratuit de KTech Solutions.',
   alternates: { canonical: '/devis/' },
 };
 
-export default async function DevisPage({ searchParams }: PageProps<'/devis'>) {
-  const [{ quote, company }, services, params] = await Promise.all([getSettings(), getServices(), searchParams]);
-  const initial = typeof params.service === 'string' ? params.service : undefined;
+/** La caisse : le chariot rempli dans les rayons + trois questions, sur un seul écran. */
+export default async function DevisPage() {
+  const [{ company }, services] = await Promise.all([getSettings(), getServices()]);
 
   return (
-    <>
-      <PageHero crumbs={[{ label: 'Demande de devis' }]} eyebrow="Demande de devis" title={quote.title} lead={quote.lead} />
-      <section className="section wizard-section">
-        <div className="container">
-          <QuoteWizard
-            services={services.map((s) => ({ slug: s.slug, title: s.title, shortTitle: s.shortTitle, summary: s.summary, icon: s.icon, offers: s.offers }))}
-            initialService={initial}
-            whatsapp={company.whatsapp}
-            successText={quote.successText}
-          />
+    <section className="section checkout-section">
+      <div className="container">
+        <nav className="crumbs" aria-label="Fil d’Ariane">
+          <ol>
+            <li>
+              <Link href="/">Accueil</Link>
+            </li>
+            <li>
+              <Link href="/services/">Le magasin</Link>
+            </li>
+            <li aria-current="page">La caisse</li>
+          </ol>
+        </nav>
+        <div className="checkout-head">
+          <p className="eyebrow">La caisse</p>
+          <h1 className="h1">Passage en caisse{'\u00a0'}: une minute suffit.</h1>
         </div>
-      </section>
-    </>
+        <Checkout services={services.map((s) => ({ slug: s.slug, shortTitle: s.shortTitle, icon: s.icon }))} whatsapp={company.whatsapp} />
+      </div>
+    </section>
   );
 }

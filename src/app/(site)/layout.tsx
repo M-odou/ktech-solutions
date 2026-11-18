@@ -2,6 +2,7 @@ import { Footer } from '@/components/layout/Footer';
 import { Header } from '@/components/layout/Header';
 import { RevealObserver } from '@/components/layout/RevealObserver';
 import { Icon } from '@/components/ui/Icon';
+import { CartDock } from '@/features/cart/CartDock';
 import { SITE_URL } from '@/config/site';
 import { whatsappUrl } from '@/lib/format';
 import { getServices, getSettings } from '@/server/queries/content';
@@ -30,7 +31,7 @@ export default async function SiteLayout({ children }: LayoutProps<'/'>) {
       <a className="skip" href="#contenu">
         Aller au contenu
       </a>
-      <Header services={services.map((s) => ({ slug: s.slug, shortTitle: s.shortTitle }))} whatsapp={company.whatsapp} />
+      <Header />
       <main id="contenu" tabIndex={-1}>
         {children}
       </main>
@@ -42,6 +43,7 @@ export default async function SiteLayout({ children }: LayoutProps<'/'>) {
           </a>
         </aside>
       )}
+      <CartDock services={services.map((s) => ({ slug: s.slug, shortTitle: s.shortTitle, icon: s.icon }))} whatsapp={company.whatsapp} />
       <RevealObserver />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
     </>
