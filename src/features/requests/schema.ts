@@ -33,6 +33,8 @@ export const quoteSchema = z
   .object({
     service: z.string().min(1, 'Choisissez un service, ou « Autre ».'),
     projectTypes: z.array(z.string().max(120)).max(10).default([]),
+    /** Identifiants des fonctionnalités du panier (content/features.ts). */
+    features: z.array(z.string().max(80)).max(60).default([]),
     description: z.string().trim().min(20, 'Décrivez votre projet en quelques phrases (20 caractères minimum).').max(4000),
     goals: z.array(z.enum(GOALS)).max(GOALS.length).default([]),
     budget: z.enum(BUDGETS, { message: 'Choisissez une fourchette de budget, ou « À définir ensemble ».' }),

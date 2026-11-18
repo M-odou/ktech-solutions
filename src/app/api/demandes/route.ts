@@ -1,5 +1,6 @@
 import { revalidatePath } from 'next/cache';
 import { NextResponse, type NextRequest } from 'next/server';
+import { cartTotal, formatPrice, priceLabel, resolveCart } from '@/content/features';
 import { messageSchema, quoteSchema, toFieldErrors, trainingSchema } from '@/features/requests/schema';
 import { STATIC_SITE } from '@/server/mode';
 import { getServices, getSettings } from '@/server/queries/content';
@@ -36,7 +37,7 @@ export async function POST(req: NextRequest) {
 
   try {
     if (kind === 'devis') {
-      const parsed = quoteSchema.safeParse({ ...raw, projectTypes: arr('projectTypes'), goals: arr('goals') });
+      const parsed = quoteSchema.safeParse({ ...raw, projectTypes: arr('projectTypes'), features: arr('features'), goals: arr('goals') });
       if (!parsed.success) return NextResponse.json({ errors: toFieldErrors(parsed.error) }, { status: 422 });
 
       const files = form.getAll('files').filter((f): f is File => f instanceof File && f.size > 0);
@@ -47,12 +48,23 @@ export async function POST(req: NextRequest) {
       const v = parsed.data;
       const services = await getServices();
       const serviceLabel = services.find((s) => s.slug === v.service)?.title ?? 'Autre / à définir';
+      // Panier : libellés et prix relus dans le catalogue serveur (jamais ceux envoyés par le navigateur).
+      const lines = resolveCart([...new Set(v.features)]);
+      const cartDetails: Record<string, string> = lines.length
+        ? {
+            'Panier (fonctionnalités choisies)': lines
+              .map((l) => `• ${services.find((s) => s.slug === l.service)?.shortTitle ?? l.service} — ${l.label} (${priceLabel(l)})`)
+              .join('\n'),
+            'Estimation du panier': `${formatPrice(cartTotal(lines))} (prix de départ indicatifs)`,
+          }
+        : {};
       const request = await createRequest({
         kind: 'devis',
         subject: serviceLabel,
         details: {
           Service: serviceLabel,
           'Types de projet': v.projectTypes,
+          ...cartDetails,
           'Description du projet': v.description,
           Objectifs: v.goals,
           Budget: v.budget,

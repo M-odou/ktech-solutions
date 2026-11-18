@@ -5,7 +5,9 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { ChoiceCard, ChoiceGroup, ChoicePill } from '@/components/ui/Choice';
 import { Field } from '@/components/ui/Field';
 import { Icon, type IconName } from '@/components/ui/Icon';
+import { cartTotal, formatPrice, priceLabel, resolveCart } from '@/content/features';
 import { formatBytes, whatsappUrl } from '@/lib/format';
+import { cart, useCart } from '../cart/store';
 import { BUDGETS, CONTACT_PREFS, GOALS, quoteSchema, TIMELINES, toFieldErrors, type FieldErrors } from '../requests/schema';
 import { submitRequest } from '../requests/submit';
 import { FileDrop } from './FileDrop';
@@ -93,6 +95,8 @@ export function QuoteWizard({
   const doneRef = useRef<HTMLDivElement>(null);
 
   const service = services.find((s) => s.slug === data.service);
+  const cartLines = resolveCart(useCart());
+  const serviceName = (slug: string) => services.find((s) => s.slug === slug)?.shortTitle ?? slug;
   const set = <K extends keyof Data>(key: K, value: Data[K]) => {
     setEdited(true);
     setData((d) => ({ ...d, [key]: value }));
@@ -146,6 +150,7 @@ export function QuoteWizard({
       else if (k === 'consent') form.set(k, v ? 'on' : '');
       else form.set(k, String(v));
     }
+    cartLines.forEach((l) => form.append('features', l.id));
     files.forEach((f) => form.append('files', f));
     setServerError('');
     setSending(0);
@@ -157,6 +162,7 @@ export function QuoteWizard({
       } catch {
         /* rien */
       }
+      cart.clear();
       setDone({ reference: res.reference, rejected: res.rejected });
       requestAnimationFrame(() => doneRef.current?.focus());
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -351,6 +357,32 @@ export function QuoteWizard({
 
         {step === 1 && (
           <div className="wizard-fields">
+            {cartLines.length > 0 && (
+              <section className="wizard-cart" aria-labelledby="wizard-cart-title">
+                <header>
+                  <h3 id="wizard-cart-title">
+                    <Icon name="cart" /> Votre panier ({cartLines.length})
+                  </h3>
+                  <button type="button" className="link-btn" onClick={cart.open}>
+                    Modifier le panier
+                  </button>
+                </header>
+                <ul>
+                  {cartLines.map((l) => (
+                    <li key={l.id}>
+                      <span>
+                        <span className="muted">{serviceName(l.service)} · </span>
+                        {l.label}
+                      </span>
+                      <span className="muted">{priceLabel(l)}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="wizard-cart-total">
+                  Estimation de départ : <b>{formatPrice(cartTotal(cartLines))}</b>
+                </p>
+              </section>
+            )}
             {service && service.offers.length > 0 && (
               <ChoiceGroup legend="Qu’est-ce qui vous intéresse ?" hint="Plusieurs choix possibles (facultatif)." variant="pills">
                 {service.offers.map((o) => (
@@ -431,6 +463,18 @@ export function QuoteWizard({
             <div className="recap">
               {[
                 { step: 0, title: 'Votre besoin', rows: [['Service', service?.title ?? 'Autre / à définir']] },
+                ...(cartLines.length
+                  ? [
+                      {
+                        step: 1,
+                        title: 'Votre panier',
+                        rows: [
+                          ['Fonctionnalités', cartLines.map((l) => `• ${serviceName(l.service)} — ${l.label}`).join('\n')],
+                          ['Estimation de départ', formatPrice(cartTotal(cartLines))],
+                        ],
+                      },
+                    ]
+                  : []),
                 { step: 1, title: 'Votre projet', rows: [['Ce qui vous intéresse', data.projectTypes.join(', ') || '—'], ['Description', data.description], ['Objectifs', data.goals.join(', ') || '—']] },
                 { step: 2, title: 'Budget et délais', rows: [['Budget', data.budget], ['Délai', data.timeline]] },
                 { step: 3, title: 'Documents', rows: [['Fichiers', files.length ? files.map((f) => `${f.name} (${formatBytes(f.size)})`).join(', ') : 'Aucun']] },

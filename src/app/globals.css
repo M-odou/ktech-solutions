@@ -927,3 +927,69 @@ details.editable[open] > summary::after { content: "Fermer"; }
 .admin-login-card .logo img { height: 44px; }
 .admin-login-card h1 { font-size: 1.6rem; }
 .admin .btn-sm { min-height: 40px; }
+
+/* =========================================================
+   Panier (fonctionnalités choisies par le visiteur)
+   ========================================================= */
+.cart-btn { position: relative; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line-2); background: var(--tint); color: var(--text); }
+.cart-btn:hover { border-color: var(--hover-line); }
+.cart-btn svg { width: 20px; height: 20px; }
+.cart-count { position: absolute; top: -4px; right: -4px; display: grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; background: var(--green); color: #fff; font-size: 11px; font-weight: 600; line-height: 1; box-shadow: 0 0 0 2px var(--bg); }
+@media (prefers-reduced-motion: no-preference) {
+  .cart-btn.bump .cart-count { animation: cartBump 450ms var(--ease); }
+  @keyframes cartBump { 0% { transform: scale(1); } 40% { transform: scale(1.45); } 100% { transform: scale(1); } }
+}
+
+.cart-drawer { position: fixed; inset: 0 0 0 auto; margin: 0; width: min(440px, 100%); max-width: 100%; height: 100%; max-height: 100%; padding: 0; border: 0; border-left: 1px solid var(--line); background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+.cart-drawer::backdrop { background: rgba(5, 8, 12, .6); backdrop-filter: blur(2px); }
+@media (prefers-reduced-motion: no-preference) {
+  .cart-drawer[open] { animation: cartIn 260ms var(--ease); }
+  @keyframes cartIn { from { transform: translateX(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+}
+.cart-in { display: grid; grid-template-rows: auto 1fr auto; height: 100%; }
+.cart-head { display: flex; justify-content: space-between; align-items: center; gap: var(--s-3); padding: var(--s-4) var(--s-5); border-bottom: 1px solid var(--line); }
+.cart-head h2 { font-size: 1.25rem; }
+.cart-head .muted { font-weight: 400; }
+.cart-body { overflow-y: auto; display: grid; align-content: start; gap: var(--s-5); padding: var(--s-5); }
+.cart-group h3 { font-size: var(--t-xs); letter-spacing: .12em; text-transform: uppercase; color: var(--text-2); font-weight: 500; margin-bottom: var(--s-2); }
+.cart-group h3 a:hover { color: var(--text); text-decoration: underline; }
+.cart-group ul { display: grid; gap: 8px; }
+.cart-group li { display: flex; align-items: center; gap: var(--s-3); padding: 10px 6px 10px 14px; border-radius: var(--r); background: var(--bg-2); border: 1px solid var(--line); }
+.cart-line { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.cart-line b { font-weight: 500; font-size: .95rem; line-height: 1.35; }
+.cart-line .muted { font-size: var(--t-xs); }
+.cart-remove { display: grid; place-items: center; width: 44px; height: 44px; flex: none; border: 0; border-radius: 50%; background: none; color: var(--text-2); }
+.cart-remove:hover { background: color-mix(in srgb, var(--err) 12%, transparent); color: var(--err); }
+.cart-remove svg { width: 18px; height: 18px; }
+.cart-foot { display: grid; gap: var(--s-3); padding: var(--s-5); border-top: 1px solid var(--line); background: var(--bg-2); }
+.cart-total { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-3); }
+.cart-total b { font-size: 1.35rem; font-weight: 500; letter-spacing: -.02em; color: var(--green-l); }
+.cart-note { font-size: var(--t-xs); color: var(--text-2); }
+.cart-foot .btn { width: 100%; }
+.cart-actions { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--s-3); }
+.cart-empty { display: grid; justify-items: center; align-content: center; gap: var(--s-3); padding: var(--s-7) var(--s-5); text-align: center; }
+
+/* Étal d'un service */
+.feature-grid { display: grid; gap: var(--s-3); }
+@media (min-width: 700px) { .feature-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1100px) { .feature-grid { grid-template-columns: repeat(3, 1fr); } }
+.feature-card { display: grid; grid-template-rows: 1fr auto; gap: var(--s-4); padding: var(--s-5); border-radius: var(--r-lg); background: var(--surface); border: 1px solid var(--line); transition: border-color var(--d), background var(--d); }
+.feature-card:hover { border-color: var(--hover-line); }
+.feature-card.on { border: 2px solid var(--green-l); padding: calc(var(--s-5) - 1px); background: color-mix(in srgb, var(--green-l) 6%, var(--surface)); }
+.feature-text { display: grid; gap: 4px; align-content: start; }
+.feature-text b { font-weight: 500; }
+.feature-text .muted { font-size: var(--t-sm); }
+.feature-foot { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--s-3); }
+.feature-price { font-size: var(--t-sm); color: var(--green-l); font-weight: 500; }
+.feature-summary { position: sticky; bottom: 12px; z-index: 5; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--s-3); margin-top: var(--s-6); padding: var(--s-3) var(--s-3) var(--s-3) var(--s-5); border-radius: var(--r-lg); background: var(--header-bg-2); border: 1px solid var(--line-2); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: var(--shadow); }
+.feature-summary p { font-size: var(--t-sm); }
+.feature-summary b { font-weight: 600; }
+
+/* Panier dans le parcours de devis */
+.wizard-cart { display: grid; gap: var(--s-3); padding: var(--s-4) var(--s-5); border-radius: var(--r); background: color-mix(in srgb, var(--green-l) 6%, var(--bg-2)); border: 1px solid var(--line-2); }
+.wizard-cart header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--s-2); }
+.wizard-cart h3 { display: flex; align-items: center; gap: 8px; font-size: 1rem; font-weight: 500; }
+.wizard-cart h3 svg { width: 20px; height: 20px; color: var(--green-l); }
+.wizard-cart ul { display: grid; gap: 6px; }
+.wizard-cart li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; font-size: var(--t-sm); padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+.wizard-cart-total b { color: var(--green-l); font-weight: 600; }

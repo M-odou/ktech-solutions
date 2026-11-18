@@ -30,7 +30,7 @@ export default async function SiteLayout({ children }: LayoutProps<'/'>) {
       <a className="skip" href="#contenu">
         Aller au contenu
       </a>
-      <Header />
+      <Header services={services.map((s) => ({ slug: s.slug, shortTitle: s.shortTitle }))} whatsapp={company.whatsapp} />
       <main id="contenu" tabIndex={-1}>
         {children}
       </main>

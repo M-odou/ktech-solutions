@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { Checks, CtaBand, PageHero } from '@/components/sections/Blocks';
 import { Icon, type IconName } from '@/components/ui/Icon';
 import { CTA } from '@/config/site';
+import { FeaturePicker } from '@/features/cart/FeaturePicker';
 import { categoryLabel } from '@/lib/format';
 import { getProjects, getServiceBySlug, getServices, getSettings } from '@/server/queries/content';
 
@@ -39,8 +40,11 @@ export default async function ServicePage({ params }: PageProps<'/services/[slug
     <>
       <PageHero crumbs={[{ href: '/services/', label: 'Services' }, { label: service.shortTitle }]} eyebrow="Service" title={service.title} lead={service.summary}>
         <div className="btns">
-          <Link className="btn" href={`${CTA.href}?service=${service.slug}`}>
-            {CTA.primary} <Icon name="arrow" />
+          <Link className="btn" href="#composer">
+            Composer mon panier <Icon name="cart" />
+          </Link>
+          <Link className="btn btn-ghost" href={`${CTA.href}?service=${service.slug}`}>
+            {CTA.primary}
           </Link>
         </div>
       </PageHero>
@@ -85,10 +89,15 @@ export default async function ServicePage({ params }: PageProps<'/services/[slug
                 <Icon name={service.icon as IconName} />
               </span>
               <p className="side-title">Un projet dans ce domaine ?</p>
-              <p className="muted">Quelques questions suffisent pour recevoir une proposition adaptée.</p>
-              <Link className="btn" href={`${CTA.href}?service=${service.slug}`}>
-                {CTA.primary}
-              </Link>
+              <p className="muted">Ajoutez les fonctionnalités voulues à votre panier, ou décrivez directement votre besoin.</p>
+              <div className="btns">
+                <Link className="btn" href="#composer">
+                  Composer mon panier
+                </Link>
+                <Link className="btn btn-ghost" href={`${CTA.href}?service=${service.slug}`}>
+                  {CTA.primary}
+                </Link>
+              </div>
             </div>
             <nav className="side-nav" aria-label="Autres services">
               <p className="side-title">Autres services</p>
@@ -105,6 +114,8 @@ export default async function ServicePage({ params }: PageProps<'/services/[slug
           </div>
         </div>
       </section>
+
+      <FeaturePicker service={service.slug} title={service.shortTitle} />
 
       {related.length > 0 && (
         <section className="section band" aria-labelledby="related-title">
