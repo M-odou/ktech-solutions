@@ -2,157 +2,123 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Icon, type IconName } from '@/components/ui/Icon';
-import { FEATURES, resolveCart } from '@/content/features';
+import { FEATURES, priceLabel, resolveCart } from '@/content/features';
 import { CheckoutLane } from './CheckoutLane';
-import { FeatureStall } from './FeaturePicker';
-import { useCart } from './store';
+import { flyToCart } from './fly';
+import { cart, useCart } from './store';
 
 export type MarketService = { slug: string; title: string; shortTitle: string; summary: string; icon: string };
 
-/**
- * Page Services en supermarché : chaque service est un rayon. On entre dans un rayon,
- * on met les livrables voulus dans le chariot (autant de rayons qu'on veut), puis on passe à la caisse.
- */
-export function ServicesMarket({ services, initial = '' }: { services: MarketService[]; initial?: string }) {
-  const valid = (slug: string) => (services.some((s) => s.slug === slug) ? slug : '');
-  const [selected, setSelected] = useState(valid(initial));
-  const [lastInitial, setLastInitial] = useState(initial);
-  if (initial !== lastInitial) {
-    setLastInitial(initial);
-    if (valid(initial)) setSelected(initial);
-  }
-  const lines = resolveCart(useCart());
-  const headingRef = useRef<HTMLHeadingElement>(null);
-  const current = services.find((s) => s.slug === selected);
-  const visited = new Set(lines.map((l) => l.service));
+const smooth = () => (window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth');
 
-  const enter = (slug: string) => {
-    setSelected(slug);
-    try {
-      window.history.replaceState(null, '', `?service=${slug}#etal`);
-    } catch {
-      /* rien */
-    }
-    requestAnimationFrame(() => {
-      document.getElementById('etal')?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
-      headingRef.current?.focus({ preventScroll: true });
-    });
-  };
+/** Une étagère : les articles d'un service défilent à l'horizontale, un toucher pour ajouter. */
+function Shelf({ service, index, onAnnounce }: { service: MarketService; index: number; onAnnounce: (t: string) => void }) {
+  const ids = useCart();
+  const items = FEATURES[service.slug] ?? [];
+  const inCart = items.filter((f) => ids.includes(f.id)).length;
+  const rowRef = useRef<HTMLUListElement>(null);
+  const scroll = (dir: number) => rowRef.current?.scrollBy({ left: dir * rowRef.current.clientWidth * 0.8, behavior: smooth() });
 
   return (
-    <>
-      <ol className="market-steps" aria-label="Comment ça marche">
-        <li>
-          <span aria-hidden="true">
-            <Icon name="bag" />
+    <section className="aisle" id={`rayon-${service.slug}`} aria-labelledby={`aisle-${service.slug}`}>
+      <header className="aisle-head">
+        <span className="icon">
+          <Icon name={service.icon as IconName} />
+        </span>
+        <div className="aisle-title">
+          <span className="market-aisle">Rayon {index + 1}</span>
+          <h2 id={`aisle-${service.slug}`}>{service.shortTitle}</h2>
+        </div>
+        {inCart > 0 && (
+          <span className="market-badge">
+            <Icon name="cart" /> {inCart}
+            <span className="sr-only"> dans le chariot</span>
           </span>
-          <b>1.</b> Entrez dans un rayon
-        </li>
-        <li>
-          <span aria-hidden="true">
-            <Icon name="cart" />
-          </span>
-          <b>2.</b> Prenez les livrables qu’il vous faut
-        </li>
-        <li>
-          <span aria-hidden="true">
-            <Icon name="file" />
-          </span>
-          <b>3.</b> Passez à la caisse : devis gratuit
-        </li>
-      </ol>
+        )}
+        <div className="aisle-nav">
+          <button type="button" className="shelf-arrow" onClick={() => scroll(-1)} aria-label={`Défiler le rayon ${service.shortTitle} vers la gauche`}>
+            <Icon name="arrow" />
+          </button>
+          <button type="button" className="shelf-arrow" onClick={() => scroll(1)} aria-label={`Défiler le rayon ${service.shortTitle} vers la droite`}>
+            <Icon name="arrow" />
+          </button>
+        </div>
+      </header>
 
-      <h2 className="sr-only">Les rayons</h2>
-      <ul className="market-grid">
-        {services.map((s, i) => {
-          const mine = lines.filter((l) => l.service === s.slug);
-          const isOn = s.slug === selected;
-          const n = FEATURES[s.slug]?.length ?? 0;
+      <ul className="shelf" ref={rowRef}>
+        {items.map((f) => {
+          const on = ids.includes(f.id);
           return (
-            <li key={s.slug} className={`market-card${isOn ? ' on' : ''}${visited.has(s.slug) ? ' visited' : ''}`}>
-              <button type="button" className="market-enter" aria-pressed={isOn} aria-controls="etal" onClick={() => enter(s.slug)}>
-                <span className="market-card-top">
-                  <span className="icon">
-                    <Icon name={s.icon as IconName} />
-                  </span>
-                  <span className="market-aisle">Rayon {i + 1}</span>
-                  {mine.length > 0 && (
-                    <span className="market-badge">
-                      <Icon name="cart" /> {mine.length}
-                      <span className="sr-only"> dans le chariot</span>
-                    </span>
-                  )}
+            <li key={f.id}>
+              <button
+                type="button"
+                className={`product${on ? ' on' : ''}`}
+                aria-pressed={on}
+                onClick={(e) => {
+                  const icon = e.currentTarget.querySelector('.feature-icon');
+                  cart.toggle(f.id);
+                  if (!on) flyToCart(icon);
+                  onAnnounce(on ? `${f.label} retiré du chariot.` : `${f.label} ajouté au chariot.`);
+                }}
+              >
+                <span className="feature-icon" aria-hidden="true">
+                  <Icon name={f.icon} />
                 </span>
-                <span className="market-title">{s.title}</span>
-                <span className="market-summary">{s.summary}</span>
-                {mine.length > 0 && (
-                  <span className="market-goods" aria-hidden="true">
-                    {mine.slice(0, 6).map((l) => (
-                      <span key={l.id} className="chariot-good">
-                        <Icon name={l.icon} />
-                      </span>
-                    ))}
-                  </span>
-                )}
-                <span className="market-cta">
-                  {isOn ? 'Vous êtes dans ce rayon' : mine.length ? 'Retourner dans le rayon' : 'Entrer dans le rayon'}
-                  <Icon name="arrow" />
+                <span className="product-name">{f.label}</span>
+                <span className="product-price">{priceLabel(f)}</span>
+                <span className="product-add" aria-hidden="true">
+                  <Icon name={on ? 'check' : 'plus'} />
                 </span>
               </button>
-              <p className="market-foot">
-                <span>{n} articles</span>
-                <Link href={`/services/${s.slug}/`}>
-                  En savoir plus<span className="sr-only"> : {s.title}</span>
-                </Link>
-              </p>
             </li>
           );
         })}
+        <li className="shelf-more">
+          <Link href={`/services/${service.slug}/`}>
+            En savoir plus<span className="sr-only"> : {service.title}</span> <Icon name="arrow" />
+          </Link>
+        </li>
       </ul>
+    </section>
+  );
+}
 
-      <section id="etal" className="etal" aria-labelledby="etal-title">
-        {current ? (
-          <>
-            <div className="etal-head">
-              <span className="icon">
-                <Icon name={current.icon as IconName} />
-              </span>
-              <div>
-                <p className="eyebrow">Rayon {current.shortTitle}</p>
-                <h2 className="h2" id="etal-title" ref={headingRef} tabIndex={-1}>
-                  Qu’est-ce qu’il vous faut ?
-                </h2>
-              </div>
-            </div>
-            <FeatureStall service={current.slug} title={current.shortTitle} hideSummary />
-            <nav className="etal-next" aria-label="Autres rayons">
-              <span className="muted">Besoin d’autre chose ?</span>
-              <div className="choices">
-                {services
-                  .filter((s) => s.slug !== current.slug)
-                  .map((s) => (
-                    <button key={s.slug} type="button" className="aisle-chip" onClick={() => enter(s.slug)}>
-                      <Icon name={s.icon as IconName} /> {s.shortTitle}
-                    </button>
-                  ))}
-              </div>
-            </nav>
-          </>
-        ) : (
-          <div className="etal-empty">
-            <span className="chariot-illu" aria-hidden="true">
-              <Icon name="cart" />
-            </span>
-            <h2 className="h3" id="etal-title" ref={headingRef} tabIndex={-1}>
-              Choisissez un rayon pour voir ses articles
-            </h2>
-            <p className="muted">Prenez autant de services que vous voulez : tout va dans le même chariot, et vous passez une seule fois à la caisse.</p>
-          </div>
-        )}
-      </section>
+/**
+ * Le supermarché : tous les rayons sur une page, les articles défilent sur leurs étagères.
+ * Un toucher = dans le chariot. Le chariot suit en bas jusqu'à la caisse.
+ */
+export function ServicesMarket({ services, initial = '' }: { services: MarketService[]; initial?: string }) {
+  const lines = resolveCart(useCart());
+  const [announce, setAnnounce] = useState('');
 
+  // Arrivée depuis « Compléter » : on va directement au bon rayon.
+  useEffect(() => {
+    if (initial) document.getElementById(`rayon-${initial}`)?.scrollIntoView({ behavior: smooth(), block: 'start' });
+  }, [initial]);
+
+  return (
+    <>
+      <nav className="aisle-chips" aria-label="Aller au rayon">
+        {services.map((s) => {
+          const n = lines.filter((l) => l.service === s.slug).length;
+          return (
+            <a key={s.slug} className="aisle-chip" href={`#rayon-${s.slug}`}>
+              <Icon name={s.icon as IconName} /> {s.shortTitle}
+              {n > 0 && <span className="aisle-chip-n">{n}</span>}
+            </a>
+          );
+        })}
+      </nav>
+
+      {services.map((s, i) => (
+        <Shelf key={s.slug} service={s} index={i} onAnnounce={setAnnounce} />
+      ))}
+
+      <p className="sr-only" role="status">
+        {announce}
+      </p>
       <CheckoutLane />
     </>
   );

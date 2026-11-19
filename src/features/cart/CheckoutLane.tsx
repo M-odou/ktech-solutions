@@ -42,6 +42,9 @@ export function CheckoutLane() {
     setTimeout(() => router.push('/devis/'), 1100);
   };
 
+  // L'allée apparaît avec le premier article : rien n'encombre l'écran tant que le chariot est vide.
+  if (!count && !walking) return null;
+
   return (
     <div className={`lane${walking ? ' walking' : ''}${count ? '' : ' empty'}`} role="region" aria-label="Allée vers la caisse">
       <div className="lane-road" aria-hidden="true">

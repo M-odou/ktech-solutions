@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
-import { CtaBand, PageHero } from '@/components/sections/Blocks';
+import { CtaBand } from '@/components/sections/Blocks';
 import { ServicesMarket, ServicesMarketFromUrl } from '@/features/cart/ServicesMarket';
 import { getServices, getSettings } from '@/server/queries/content';
 
@@ -11,13 +11,18 @@ export const metadata: Metadata = {
 };
 
 export default async function ServicesPage() {
-  const [{ services: page, company }, services] = await Promise.all([getSettings(), getServices()]);
+  const [{ company }, services] = await Promise.all([getSettings(), getServices()]);
   const list = services.map((s) => ({ slug: s.slug, title: s.title, shortTitle: s.shortTitle, summary: s.summary, icon: s.icon }));
   return (
     <>
-      <PageHero crumbs={[{ label: 'Services' }]} eyebrow="Nos services" title={page.title} lead={page.lead} />
-      <section className="section market" aria-label="Choisir un service et ses livrables">
+      <section className="section market" aria-labelledby="market-title">
         <div className="container">
+          <div className="market-head">
+            <p className="eyebrow">Le magasin KTech · 1 minute</p>
+            <h1 className="h2" id="market-title">
+              Touchez, c’est dans le chariot.
+            </h1>
+          </div>
           <Suspense fallback={<ServicesMarket services={list} />}>
             <ServicesMarketFromUrl services={list} />
           </Suspense>

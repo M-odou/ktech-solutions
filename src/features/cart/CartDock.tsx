@@ -134,7 +134,7 @@ export function CartDock({ services, whatsapp }: { services: CartService[]; what
                           {g.total ? ` · dès ${formatPrice(g.total)}` : ''}
                         </p>
                       </div>
-                      <Link className="link chariot-card-more" href={`/services/?service=${g.slug}#etal`} onClick={close}>
+                      <Link className="link chariot-card-more" href={`/services/?service=${g.slug}`} onClick={close}>
                         <Icon name="plus" />
                         <span className="sr-only">Ajouter des articles du rayon {g.shortTitle}</span>
                       </Link>
